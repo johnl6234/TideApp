@@ -13,7 +13,7 @@ import {
 import { LineChart } from "react-native-chart-kit";
 import { API_BASE_URL, API_KEY } from "@env";
 import { FavouritesContext } from "../context/FavouritesContext";
-
+import { styles } from "../../global";
 type TidalEvent = {
   EventType: "HighWater" | "LowWater";
   DateTime: string;
@@ -113,10 +113,10 @@ export default function TideDetailsScreen({ route }: any) {
               {lowTides.map((t, idx) => (
                 <View key={idx} style={styles.tideBox}>
                   <Text style={styles.tideType}>Low</Text>
-                  <Text style={styles.tideHeight}>{t.Height.toFixed(2)}m</Text>
                   <Text style={styles.tideTime}>
                     {new Date(t.DateTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                   </Text>
+                  <Text style={styles.tideHeight}>{t.Height.toFixed(2)}m</Text>
                 </View>
               ))}
             </View>
@@ -124,10 +124,10 @@ export default function TideDetailsScreen({ route }: any) {
               {highTides.map((t, idx) => (
                 <View key={idx} style={styles.tideBox}>
                   <Text style={styles.tideType}>High</Text>
-                  <Text style={styles.tideHeight}>{t.Height.toFixed(2)}m</Text>
                   <Text style={styles.tideTime}>
                     {new Date(t.DateTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                   </Text>
+                  <Text style={styles.tideHeight}>{t.Height.toFixed(2)}m</Text>
                 </View>
               ))}
             </View>
@@ -149,7 +149,7 @@ export default function TideDetailsScreen({ route }: any) {
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-        <Text style={{ marginRight: 10 }}>UK+1 Hour:</Text>
+        <Text style={{ marginRight: 10, color: "white" }}>UK+1 Hour:</Text>
         <Switch
           value={useUKPlusOne}
           onValueChange={val => setUseUKPlusOne(val)}
@@ -203,19 +203,3 @@ const groupTidesByDay = (events: TidalEvent[]): TidesByDay[] => {
   return Object.entries(grouped).map(([dateStr, events]) => ({ title: dateStr, data: events }));
 };
 
-// --- Styles ---
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f0f8ff" },
-  stationHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  stationName: { fontSize: 24, fontWeight: "bold" },
-  star: { fontSize: 28, color: "#888" },
-  starActive: { color: "#FFD700" },
-  card: { backgroundColor: "#fff", borderRadius: 10, padding: 15, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 },
-  cardHeader: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  tideRow: { flexDirection: "row", justifyContent: "space-between" },
-  tideColumn: { flex: 1, justifyContent: "space-between" },
-  tideBox: { backgroundColor: "#f0f8ff", borderRadius: 8, padding: 8, marginBottom: 8, alignItems: "center" },
-  tideType: { fontWeight: "bold" },
-  tideHeight: { fontSize: 16, color: "#007bff" },
-  tideTime: { fontSize: 14, color: "#555" },
-});

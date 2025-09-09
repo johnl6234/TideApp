@@ -29,7 +29,7 @@ function LocationsStackScreen() {
       <LocationsStack.Screen
         name="LocationsMain"
         component={LocationScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true, headerTitle: ""  }}
       />
       <LocationsStack.Screen
         name="TideDetails"
@@ -55,7 +55,7 @@ function HomeStack() {
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true, headerTitle: ""  }}
       />
       <Stack.Screen
         name="TideDetails"
@@ -94,5 +94,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, justifyContent: "center", alignItems: "center" },
+  screen: { flex: 1, justifyContent: "center", alignItems: "center", marginTop: 20 },
 });

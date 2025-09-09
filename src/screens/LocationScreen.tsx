@@ -8,9 +8,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  SafeAreaView,
 } from "react-native";
 import { API_BASE_URL, API_KEY } from "@env";
 
+import { styles } from "../../global";
 type Station = {
   StationId: string;
   Name: string;
@@ -91,7 +93,7 @@ export default function LocationScreen({ navigation }: any) {
   if (loading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <TextInput
         placeholder="Search station..."
         style={styles.input}
@@ -118,24 +120,7 @@ export default function LocationScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#f0f8ff" },
-  input: {
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  item: {
-    padding: 15,
-    backgroundColor: "white",
-    marginBottom: 8,
-    borderRadius: 8,
-  },
-  name: { fontSize: 16, fontWeight: "bold" },
-  coords: { fontSize: 14, color: "gray" },
-});

@@ -6,9 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  SafeAreaView,
 } from "react-native";
 import { API_BASE_URL, API_KEY } from "@env";
 import { FavouritesContext } from "../context/FavouritesContext";
+
+import {styles} from "../../global"
 
 type Station = {
   StationId: string;
@@ -60,7 +63,7 @@ export default function HomeScreen({ navigation }: any) {
     : [];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.header}>⭐ Favourite Stations</Text>
 
       {favStations.length === 0 ? (
@@ -94,19 +97,8 @@ export default function HomeScreen({ navigation }: any) {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f0f8ff" },
-  header: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
-  item: {
-    padding: 15,
-    backgroundColor: "white",
-    marginBottom: 8,
-    borderRadius: 8,
-  },
-  name: { fontSize: 16, fontWeight: "bold" },
-  coords: { fontSize: 14, color: "gray" },
-});
+
