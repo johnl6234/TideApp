@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import {
   SafeAreaView,
   Text,
-  SectionList,
   ActivityIndicator,
   StyleSheet,
   View,
   Dimensions,
   Switch,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { API_BASE_URL, API_KEY } from "@env";
@@ -25,16 +25,23 @@ type TidesByDay = {
   data: TidalEvent[];
 };
 
+type TideCardData = {
+  date: string; // string in "DD/MM/YYYY" format
+  events: TidalEvent[];
+};
+
 export default function TideDetailsScreen({ route }: any) {
   const { stationId, stationName } = route.params;
   const { favourites, toggleFavourite } = useContext(FavouritesContext);
 
+  const [selectedDate, setSelectedDate] = useState<string>(""); // date as string
   const [loading, setLoading] = useState(true);
   const [tidesByDay, setTidesByDay] = useState<TidesByDay[]>([]);
   const [useUKPlusOne, setUseUKPlusOne] = useState(true);
 
   const isFavourite = favourites.includes(stationId);
 
+  // --- Fetch tide data ---
   useEffect(() => {
     const fetchTides = async () => {
       try {
@@ -45,7 +52,9 @@ export default function TideDetailsScreen({ route }: any) {
           }
         );
         const data: TidalEvent[] = await response.json();
-        setTidesByDay(groupTidesByDay(data));
+        const grouped = groupTidesByDay(data);
+        setTidesByDay(grouped);
+        if (grouped.length > 0) setSelectedDate(grouped[0].title); // default to first day
       } catch (err) {
         console.error(err);
       } finally {
@@ -55,41 +64,78 @@ export default function TideDetailsScreen({ route }: any) {
     fetchTides();
   }, [stationId]);
 
+  // --- Prepare FlatList data ---
+  const flatListData: TideCardData[] = tidesByDay.map(day => ({
+    date: day.title,
+    events: day.data,
+  }));
+
+  // --- Prepare chart data for selected date ---
+  const { chartLabels, chartValues } = useMemo(() => {
+    if (!selectedDate) return { chartLabels: [], chartValues: [] };
+
+    const dayData = tidesByDay.find(day => day.title === selectedDate)?.data || [];
+
+    const sorted = dayData
+      .map(event => {
+        const dateTime = new Date(event.DateTime);
+        if (useUKPlusOne) dateTime.setHours(dateTime.getHours() + 1);
+        return { ...event, dateTime };
+      })
+      .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+
+    const labels = sorted.map(t =>
+      t.dateTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    );
+    const values = sorted.map(t => t.Height);
+
+    return { chartLabels: labels, chartValues: values };
+  }, [selectedDate, tidesByDay, useUKPlusOne]);
+
   if (loading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
 
-  // --- Chart ---
-  const allTides = tidesByDay
-    .flatMap(day => day.data)
-    .map(event => {
-      const dateTime = new Date(event.DateTime);
-      if (useUKPlusOne) dateTime.setHours(dateTime.getHours() + 1);
-      return { ...event, dateTime };
-    })
-    .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+  // --- Handle card click ---
+  const handleSelectDate = (date: string) => {
+    setSelectedDate(date);
+  };
 
-// --- Chart: include last tide yesterday, today, first tide tomorrow ---
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-const tomorrow = new Date(today);
-tomorrow.setDate(today.getDate() + 1);
+  // --- Render FlatList card ---
+  const renderTideCardItem = ({ item }: { item: TideCardData }) => {
+    const lowTides = item.events.filter(e => e.EventType === "LowWater");
+    const highTides = item.events.filter(e => e.EventType === "HighWater");
 
-const lastYesterdayTide = allTides.filter(t => t.dateTime < today).pop();
-const todaysTides = allTides.filter(t => t.dateTime >= today && t.dateTime < tomorrow);
-const firstTomorrowTide = allTides.find(t => t.dateTime >= tomorrow);
-
-const extendedTides = [
-  ...(lastYesterdayTide ? [lastYesterdayTide] : []),
-  ...todaysTides,
-  ...(firstTomorrowTide ? [firstTomorrowTide] : []),
-];
-
-const chartDataPoints = extendedTides.map(t => ({
-  time: t.dateTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-  height: t.Height,
-}));
-
-const chartLabels = chartDataPoints.map(p => p.time);
-const chartValues = chartDataPoints.map(p => p.height);
+    return (
+      <TouchableOpacity onPress={() => handleSelectDate(item.date)}>
+        <View style={styles.card}>
+          <Text style={styles.cardHeader}>{item.date}</Text>
+          <View style={styles.tideRow}>
+            <View style={styles.tideColumn}>
+              {lowTides.map((t, idx) => (
+                <View key={idx} style={styles.tideBox}>
+                  <Text style={styles.tideType}>Low</Text>
+                  <Text style={styles.tideHeight}>{t.Height.toFixed(2)}m</Text>
+                  <Text style={styles.tideTime}>
+                    {new Date(t.DateTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.tideColumn}>
+              {highTides.map((t, idx) => (
+                <View key={idx} style={styles.tideBox}>
+                  <Text style={styles.tideType}>High</Text>
+                  <Text style={styles.tideHeight}>{t.Height.toFixed(2)}m</Text>
+                  <Text style={styles.tideTime}>
+                    {new Date(t.DateTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -112,7 +158,7 @@ const chartValues = chartDataPoints.map(p => p.height);
         />
       </View>
 
-      {chartDataPoints.length > 0 ? (
+      {chartValues.length > 0 ? (
         <LineChart
           data={{ labels: chartLabels, datasets: [{ data: chartValues }] }}
           width={Dimensions.get("window").width - 40}
@@ -133,33 +179,20 @@ const chartValues = chartDataPoints.map(p => p.height);
           style={{ marginVertical: 10, borderRadius: 16 }}
         />
       ) : (
-        <Text>No tide data available</Text>
+        <Text>No tide data for selected date</Text>
       )}
 
-      {/* Date Picker */}
-      
-      <SectionList
-        sections={tidesByDay}
-        keyExtractor={(item, index) => index.toString()}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.dateHeader}>{title}</Text>
-        )}
-        renderItem={({ item }) => {
-          const dateTime = new Date(item.DateTime);
-          if (useUKPlusOne) dateTime.setHours(dateTime.getHours() + 1);
-          return (
-            <Text style={styles.item}>
-              {item.EventType === "HighWater" ? "High Tide" : "Low Tide"} at{" "}
-              {dateTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} –{" "}
-              {item.Height.toFixed(2)}m
-            </Text>
-          );
-        }}
+      <FlatList
+        data={flatListData}
+        keyExtractor={(item, index) => item.date + index}
+        renderItem={renderTideCardItem}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </SafeAreaView>
   );
 }
 
+// --- Helper to group tides by day ---
 const groupTidesByDay = (events: TidalEvent[]): TidesByDay[] => {
   const grouped: Record<string, TidalEvent[]> = {};
   events.forEach(event => {
@@ -170,12 +203,19 @@ const groupTidesByDay = (events: TidalEvent[]): TidesByDay[] => {
   return Object.entries(grouped).map(([dateStr, events]) => ({ title: dateStr, data: events }));
 };
 
+// --- Styles ---
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f0f8ff" },
   stationHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   stationName: { fontSize: 24, fontWeight: "bold" },
   star: { fontSize: 28, color: "#888" },
   starActive: { color: "#FFD700" },
-  dateHeader: { fontSize: 20, fontWeight: "bold", marginTop: 15, marginBottom: 5 },
-  item: { fontSize: 16, marginBottom: 5 },
+  card: { backgroundColor: "#fff", borderRadius: 10, padding: 15, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 },
+  cardHeader: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  tideRow: { flexDirection: "row", justifyContent: "space-between" },
+  tideColumn: { flex: 1, justifyContent: "space-between" },
+  tideBox: { backgroundColor: "#f0f8ff", borderRadius: 8, padding: 8, marginBottom: 8, alignItems: "center" },
+  tideType: { fontWeight: "bold" },
+  tideHeight: { fontSize: 16, color: "#007bff" },
+  tideTime: { fontSize: 14, color: "#555" },
 });
