@@ -12,13 +12,7 @@ import { API_BASE_URL, API_KEY } from "@env";
 import { FavouritesContext } from "../context/FavouritesContext";
 
 import {styles} from "../../global"
-
-type Station = {
-  StationId: string;
-  Name: string;
-  Latitude: number;
-  Longitude: number;
-};
+import { Station } from "../types/types";
 
 export default function HomeScreen({ navigation }: any) {
   const { favourites, toggleFavourite } = useContext(FavouritesContext);

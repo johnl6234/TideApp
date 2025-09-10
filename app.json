@@ -2,6 +2,12 @@
   "expo": {
     "name": "TideApp",
     "slug": "TideApp",
+    "scheme": "tideapp",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,10 +18,28 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyDMcSEDSp1ZxlPxWhuRuTrdXat6qM2rnZg"
+        }
+      ]
+    ],
     "ios": {
+      "config": {
+    "googleMapsApiKey": "YOUR_API_KEY_HERE"
+  },
+      "bundleIdentifier": "com.john.tideapp",
       "supportsTablet": true
     },
     "android": {
+      "config": {
+    "googleMaps": {
+      "apiKey": "YOUR_API_KEY_HERE"
+    }
+  },
+      "package": "com.john.tideapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -24,6 +48,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dbd32592-8378-45f0-bafc-2b497e8a1bdf"
+      }
     }
   }
 }

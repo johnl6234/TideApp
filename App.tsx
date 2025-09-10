@@ -10,18 +10,13 @@ import { FavouritesProvider } from "./src/context/FavouritesContext";
 import TideDetailsScreen from "./src/screens/TideDetailsScreen";
 import LocationScreen from "./src/screens/LocationScreen";
 import HomeScreen from "./src/screens/HomeScreen";
+import TideMapScreen from "./src/screens/TideMapScreen";
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const LocationsStack = createNativeStackNavigator();
-
-function MapScreen() {
-  return (
-    <View style={styles.screen}>
-      <Text>Map</Text>
-    </View>
-  );
-}
+const MapStack = createNativeStackNavigator();
 
 function LocationsStackScreen() {
   return (
@@ -37,6 +32,24 @@ function LocationsStackScreen() {
         options={{ title: "Tide Details" }}
       />
     </LocationsStack.Navigator>
+  );
+}
+
+
+function MapStackScreen() {
+  return (
+    <MapStack.Navigator>
+      <MapStack.Screen
+        name="MapScreen"
+        component={TideMapScreen}
+        options={{ headerShown: true, headerTitle: ""  }}
+      />
+      <MapStack.Screen
+        name="TideDetails"
+        component={TideDetailsScreen}
+        options={{ title: "Tide Details" }}
+      />
+    </MapStack.Navigator>
   );
 }
 
@@ -84,7 +97,7 @@ export default function App() {
           })}
         >
           <Tab.Screen name="Home" component={HomeStack} />
-          <Tab.Screen name="Map" component={MapScreen} />
+          <Tab.Screen name="Map" component={MapStackScreen} />
           <Tab.Screen name="Locations" component={LocationsStackScreen} />
           <Tab.Screen name="Settings" component={SettingsScreen} />
         </Tab.Navigator>

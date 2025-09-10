@@ -13,18 +13,8 @@ import {
 import { API_BASE_URL, API_KEY } from "@env";
 
 import { styles } from "../../global";
-type Station = {
-  StationId: string;
-  Name: string;
-  Latitude: number;
-  Longitude: number;
-};
+import { Station, StationFeature } from "../types/types";
 
-interface StationFeature {
-  geometry: { coordinates: [number, number] }; // [lon, lat]
-  properties: { Id: string; Name: string; Country?: string };
-  type: string;
-}
 
 
 export default function LocationScreen({ navigation }: any) {
@@ -63,6 +53,7 @@ export default function LocationScreen({ navigation }: any) {
                 Longitude: coords[0], // lon
               };
             })
+            // @ts-ignore
             .filter((s): s is Station => s !== null); // type guard
 
 

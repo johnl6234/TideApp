@@ -14,21 +14,8 @@ import { LineChart } from "react-native-chart-kit";
 import { API_BASE_URL, API_KEY } from "@env";
 import { FavouritesContext } from "../context/FavouritesContext";
 import { styles } from "../../global";
-type TidalEvent = {
-  EventType: "HighWater" | "LowWater";
-  DateTime: string;
-  Height: number;
-};
+import { TidalEvent, TideCardData, TidesByDay } from "../types/types";
 
-type TidesByDay = {
-  title: string;
-  data: TidalEvent[];
-};
-
-type TideCardData = {
-  date: string; // string in "DD/MM/YYYY" format
-  events: TidalEvent[];
-};
 
 export default function TideDetailsScreen({ route }: any) {
   const { stationId, stationName } = route.params;
