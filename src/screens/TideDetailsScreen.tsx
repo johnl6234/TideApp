@@ -11,14 +11,16 @@ import {
   FlatList,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { API_BASE_URL, API_KEY } from "@env";
+
+import { API_BASE_URL, API_KEY, STORM_BASE_URL, STORM_API_KEY } from "@env";
 import { FavouritesContext } from "../context/FavouritesContext";
 import { styles } from "../../global";
-import { TidalEvent, TideCardData, TidesByDay } from "../types/types";
-
+import {MoonDataType, TidalEvent, TideCardData, TidesByDay, WeatherDataType} from "../types/types";
+import { MoonData, WeatherData} from "../context/tempData";
+import Feather from "@react-native-vector-icons/feather";
 
 export default function TideDetailsScreen({ route }: any) {
-  const { stationId, stationName } = route.params;
+  const { stationId, stationName, region } = route.params;
   const { favourites, toggleFavourite } = useContext(FavouritesContext);
 
   const [selectedDate, setSelectedDate] = useState<string>(""); // date as string
@@ -26,6 +28,10 @@ export default function TideDetailsScreen({ route }: any) {
   const [tidesByDay, setTidesByDay] = useState<TidesByDay[]>([]);
   const [useUKPlusOne, setUseUKPlusOne] = useState(true);
 
+  const [moonData, setMoonData] = useState<MoonDataType[]>(MoonData.data);
+  // @ts-ignore
+  const [weatherData, setWeatherData] = useState<WeatherDataType[]>(WeatherData.hours);
+  
   const isFavourite = favourites.includes(stationId);
 
   // --- Fetch tide data ---
@@ -50,7 +56,55 @@ export default function TideDetailsScreen({ route }: any) {
     };
     fetchTides();
   }, [stationId]);
+  
+  // --- Fetch weather data ---
+  // const params = 'waveDirection,waveHeight,airTemperature,windSpeed,gust,swellDirection,swellHeight,waterTemperature,windDirection';
+  //
+  // useEffect(() => {
+  //   const fetchWeather = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         `${STORM_BASE_URL}/weather/point?lat=${region.latitude}&lng=${region.longitude}&params=${params}`,
+  //         {
+  //           headers: { "Authorization": STORM_API_KEY },
+  //         }
+  //       );
+  //       const data = await response.json();
+  //       console.log(JSON.stringify(data, null, 2));
+  //     } catch (err) {
+  //       console.error(err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchWeather();
+  // }, [stationId]);
 
+  // --- Fetch weather data ---
+
+  // const end = '2025-09-11';
+  // useEffect(() => {
+  //   const fetchAstro = async () => {
+  //     try {
+  //       const response = await fetch(
+  //           `${STORM_BASE_URL}/astronomy/point?lat=${region.latitude}&lng=${region.longitude}&end=${end}`,
+  //           {
+  //             headers: { "Authorization": STORM_API_KEY },
+  //           }
+  //       );
+  //       const data = await response.json();
+  //       console.log(JSON.stringify(data, null, 2));
+  //      
+  //     } catch (err) {
+  //       console.error(err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchAstro();
+  // }, [stationId]);
+  
+  
   // --- Prepare FlatList data ---
   const flatListData: TideCardData[] = tidesByDay.map(day => ({
     date: day.title,
@@ -144,7 +198,16 @@ export default function TideDetailsScreen({ route }: any) {
           thumbColor={"#f4f3f4"}
         />
       </View>
-
+      <View style={{ flexDirection: "row", justifyContent: "space-evenly", marginBottom: 10 }}>
+        <View>
+          <Feather name={"sunrise"} size={15} color="#f0c95d" />
+          <Text style={{ color: "white", fontSize: 10 }}>{moonData[0].sunrise.slice(11, 16)}</Text>
+        </View>
+        <View>
+          <Feather name={"sunset"} size={15} color="#f0c95d" />
+          <Text style={{ color: "white", fontSize: 10 }}>{moonData[0].sunset.slice(11, 16)}</Text>
+        </View>
+      </View>
       {chartValues.length > 0 ? (
         <LineChart
           data={{ labels: chartLabels, datasets: [{ data: chartValues }] }}
